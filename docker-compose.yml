@@ -1,0 +1,15 @@
+version: "3"
+services:
+  indexer:
+    image: impetus-ct-indexer:1.0.0
+    shm_size: '32gb'
+    env_file: .env
+    extra_hosts:
+      - "<kafka-broker-name>:<IP>"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

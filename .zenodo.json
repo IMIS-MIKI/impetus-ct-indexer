@@ -1,0 +1,37 @@
+{
+    "creators":
+    [
+        {
+            "affiliation": "Institute for Medical Informatics and Statistics (IMIS), Kiel University and University Hospital Schleswig-Holstein, Germany",
+            "name": "Ulrich, Hannes",
+            "orcid": "0000-0002-8349-6798"
+        }
+    ],
+    "contributors":
+    [
+        {
+            "name": "Pazmino Pinto, Santiago David",
+            "orcid": "0009-0009-7065-0221",
+            "affiliation": "Institute for Medical Informatics and Statistics (IMIS), Kiel University and University Hospital Schleswig-Holstein, Germany",
+            "type": "Researcher"
+        },
+        {
+            "name": "Hendel, Robin",
+            "orcid": "0009-0004-8239-6711",
+            "affiliation": "University Hospital Wuerzburg, Wuerzburg, Germany",
+            "type": "Researcher"
+        }
+    ],
+    "description": "This repository contains the IMPETUS CT Indexer. The indexer runs on CT imaging series, segments and automatically annotates anotomical region via SNOMED CT and RadLex.",
+    "keywords":
+    [
+        "Semantic Interoperability",
+        "HL7 FHIR",
+        "SNOMED CT",
+        "RadLex",
+        "Segmentation",
+        "Annotation"
+    ],
+    "title": "impetus-ct-indexer",
+    "upload_type": "software"
+}
