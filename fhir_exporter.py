@@ -1,7 +1,7 @@
 from fhir.resources.bundle import Bundle, BundleEntry, BundleEntryRequest
 from fhir.resources.patient import Patient
 from fhir.resources.identifier import Identifier
-from fhir.resources.provenance import Provenance
+from fhir.resources.provenance import Provenance, ProvenanceAgent, ProvenanceEntity
 from fhir.resources.device import Device, DeviceVersion
 from fhir.resources.bodystructure import BodyStructure, BodyStructureIncludedStructure
 from fhir.resources.imagingstudy import ImagingStudy, ImagingStudySeries
@@ -9,16 +9,18 @@ from fhir.resources.codeableconcept import CodeableConcept
 from fhir.resources.reference import Reference
 from fhir.resources.codeablereference import CodeableReference
 from dotenv import load_dotenv
+from datetime import datetime
 
 import os
 import uuid
 import snomed_ct_mapping
+import time
 
 
 load_dotenv(verbose=True)
 
 resource_uuids = {"patient": str(uuid.uuid4()), "series": str(uuid.uuid4()), "body_structure": str(uuid.uuid4()),
-                  "device": str(uuid.uuid4())}
+                  "device": str(uuid.uuid4()), "prov": str(uuid.uuid4())}
 
 
 def transform_to_fhir(incoming):
@@ -29,6 +31,7 @@ def transform_to_fhir(incoming):
     body_structure = create_body_structure(incoming['labels'])
     device = create_device(incoming['provenance'])
     study = create_imaging_study(incoming['identification'])
+    prov = create_provenance(datetime.fromtimestamp(time.time()))
 
     pat_entry_request = BundleEntryRequest.construct(url='Patient', method='POST')
     pat_entry_request.ifNoneExist = "identifier=" + pat.identifier[0].system + "|" + pat.identifier[0].value
@@ -38,6 +41,7 @@ def transform_to_fhir(incoming):
 
     body_structure_request = BundleEntryRequest.construct(url='BodyStructure', method='POST')
     study_request = BundleEntryRequest.construct(url='ImagingStudy', method='POST')
+    prov_request = BundleEntryRequest.construct(url='Provenance', method='POST')
 
     pat_entry = BundleEntry.construct()
     pat_entry.resource = pat
@@ -52,14 +56,19 @@ def transform_to_fhir(incoming):
     device_entry = BundleEntry.construct()
     device_entry.resource = device
     device_entry.request = device_entry_request
-    device_entry.fullUrl = resource_uuids['body_structure']
+    device_entry.fullUrl = resource_uuids['device']
 
     study_entry = BundleEntry.construct()
     study_entry.resource = study
     study_entry.request = study_request
     study_entry.fullUrl = resource_uuids['series']
 
-    bundle.entry = [pat_entry, body_structure_entry, study_entry, device_entry]
+    prov_entry = BundleEntry.construct()
+    prov_entry.resource = prov
+    prov_entry.request = prov_request
+    prov_entry.fullUrl = resource_uuids['prov']
+
+    bundle.entry = [pat_entry, body_structure_entry, study_entry, device_entry, prov_entry]
 
     print(bundle.json(indent=2))
     return bundle
@@ -131,7 +140,23 @@ def create_provenance(instant):
     body_structure_ref = Reference.construct()
     body_structure_ref.reference = resource_uuids['body_structure']
     prov.target = [body_structure_ref]
+
+    pat_ref = Reference.construct()
+    pat_ref.reference = resource_uuids['patient']
+    prov.patient = pat_ref
+
     prov.recorded = instant
+
+    who_ref = Reference.construct()
+    who_ref.reference = resource_uuids['device']
+    agent = ProvenanceAgent.construct(who=who_ref)
+    prov.agent = [agent]
+
+    what_ref = Reference.construct()
+    what_ref.reference = resource_uuids['series']
+    entity = ProvenanceEntity.construct(role='source', what=what_ref)
+    prov.entity = [entity]
+
     return prov
 
 
